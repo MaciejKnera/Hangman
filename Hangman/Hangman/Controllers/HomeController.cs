@@ -23,8 +23,21 @@ namespace Hangman.Controllers
         public async Task<IActionResult> Index()
         {
             KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>();
-            keyValuePair = Randoms.GetRandomEntryFromDictAsync(await FileData.ConvertFileContentToDictAsync());
+            keyValuePair = Randoms.GetRandomEntryFromDictAsync(await FileData.ConvertFileContentToDictAsync(FileData._countryCapitalFile));
             string country = keyValuePair.Key;
+
+            Player player = new Player()
+            {
+                Name = "Maciej",
+                Date = DateTime.Now,
+                RoundTime = TimeSpan.FromSeconds(45),
+                GuessedWord = "Warsaw",
+                GuessingTries = 12
+            };
+
+            await FileData.WriteToFileAsync(player, FileData._scoreFile);
+            var listOfScores = await FileData.ReturnTopScoresFromFileAsync(10);
+
             return View();
         }
 

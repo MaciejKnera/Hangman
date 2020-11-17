@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Hangman.Models;
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -10,16 +11,20 @@ namespace Hangman.Data
 {
     public static class FileData
     {
-        private static readonly string _fileName = "countries_and_capitals.txt.txt";
-        private static readonly string _path = Path.Combine($@"{ Environment.CurrentDirectory}", @"Data\", _fileName);
+        public static readonly string _countryCapitalFile = "countries_and_capitals.txt.txt", _scoreFile = "score.txt";
+        
+        private static string ReturnRelativePathToFile(string  fileName)
+        {
+            return Path.Combine($@"{ Environment.CurrentDirectory}", @"Data\", fileName);
+        }
 
-        private static async Task<string> ReadFileAsync()
+        private static async Task<string> ReadFileAsync(string path)
         {
             string output;
 
             try
             {
-                using (StreamReader reader = new StreamReader(_path))
+                using (StreamReader reader = new StreamReader(path))
                 {
                     output = await reader.ReadToEndAsync();
                 }
@@ -34,13 +39,13 @@ namespace Hangman.Data
             return output;
         }
 
-        public static async Task<Dictionary<string, string>> ConvertFileContentToDictAsync()
+        public static async Task<Dictionary<string, string>> ConvertFileContentToDictAsync(string fileName)
         {
             Dictionary<string, string> output = new Dictionary<string, string>();
 
             try
             {
-                string fileContent = await ReadFileAsync();
+                string fileContent = await ReadFileAsync(ReturnRelativePathToFile(fileName));
 
                 string[] lines = fileContent.Split("\n");
                 foreach (string line in lines)
@@ -61,5 +66,58 @@ namespace Hangman.Data
 
             return output;
         } 
+
+        public static async Task WriteToFileAsync(Player player, string fileName)
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(ReturnRelativePathToFile(fileName), true))
+                {
+                    await writer.WriteLineAsync($"{player.Name} | {player.Date} | {player.RoundTime} | {player.GuessingTries} | {player.GuessedWord}");
+                }
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public static async Task<List<Player>> ReturnTopScoresFromFileAsync(int scoresNumber)
+        {
+            List<Player> output = new List<Player>();
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(ReturnRelativePathToFile(_scoreFile)))
+                {
+                    string fileContent = await reader.ReadToEndAsync();
+                    string[] playersScores = fileContent.Split("/n");
+
+                    foreach (var score in playersScores)
+                    {
+                        string[] playerScore = score.Split("|");
+                        output.Add(new Player()
+                        {
+                            Name = playerScore[0],
+                            Date = Convert.ToDateTime(playerScore[1]),
+                            RoundTime = TimeSpan.Parse(playerScore[2]),
+                            GuessingTries = Convert.ToInt32(playerScore[3]),
+                            GuessedWord = playerScore[4]
+                        });
+                    }
+                }
+
+                output = output.OrderBy(player => player.RoundTime).ThenBy(player => player.GuessingTries).Take(scoresNumber).ToList();
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+
+            return output;
+
+        }
     }
 }
