@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Hangman.Models;
+using Hangman.Data;
+using Hangman.Utilities;
 
 namespace Hangman.Controllers
 {
@@ -18,8 +20,11 @@ namespace Hangman.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>();
+            keyValuePair = Randoms.GetRandomEntryFromDictAsync(await FileData.ConvertFileContentToDictAsync());
+            string country = keyValuePair.Key;
             return View();
         }
 
