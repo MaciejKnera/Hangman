@@ -92,11 +92,11 @@ namespace Hangman.Data
                 using (StreamReader reader = new StreamReader(ReturnRelativePathToFile(_scoreFile)))
                 {
                     string fileContent = await reader.ReadToEndAsync();
-                    string[] playersScores = fileContent.Split("/n");
+                    string[] playersScores = fileContent.Split("\n");
 
-                    foreach (var score in playersScores)
+                    for (int i = 0; i < playersScores.Length-1; i++)
                     {
-                        string[] playerScore = score.Split("|");
+                        string[] playerScore = playersScores[i].Split("|");
                         output.Add(new Player()
                         {
                             Name = playerScore[0],
@@ -106,6 +106,24 @@ namespace Hangman.Data
                             GuessedWord = playerScore[4]
                         });
                     }
+
+                    //foreach (var score in playersScores)
+                    //{
+                    //    string[] playerScore = score.Split("|");
+                    //    output.Add(new Player()
+                    //    {
+                    //        Name = playerScore[0],
+                    //        Date = Convert.ToDateTime(playerScore[1]),
+                    //        RoundTime = TimeSpan.Parse(playerScore[2]),
+                    //        GuessingTries = Convert.ToInt32(playerScore[3]),
+                    //        GuessedWord = playerScore[4]
+                    //    });
+                    //}
+                }
+
+                if (scoresNumber > output.Count())
+                {
+                    scoresNumber = output.Count();
                 }
 
                 output = output.OrderBy(player => player.RoundTime).ThenBy(player => player.GuessingTries).Take(scoresNumber).ToList();

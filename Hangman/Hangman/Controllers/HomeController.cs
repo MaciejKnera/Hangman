@@ -8,42 +8,85 @@ using Microsoft.Extensions.Logging;
 using Hangman.Models;
 using Hangman.Data;
 using Hangman.Utilities;
+using System.Text;
 
 namespace Hangman.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
-        {
-            _logger = logger;
-        }
+        [BindProperty]
+        public Round Round { get; set; }
 
         public async Task<IActionResult> Index()
         {
-            KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>();
-            keyValuePair = Randoms.GetRandomEntryFromDictAsync(await FileData.ConvertFileContentToDictAsync(FileData._countryCapitalFile));
-            string country = keyValuePair.Key;
 
-            Player player = new Player()
+            KeyValuePair<string, string> countryCityPair = new KeyValuePair<string, string>();
+            countryCityPair = Randoms.GetRandomEntryFromDictAsync(await FileData.ConvertFileContentToDictAsync(FileData._countryCapitalFile));
+
+            Round = new Round
             {
-                Name = "Maciej",
-                Date = DateTime.Now,
-                RoundTime = TimeSpan.FromSeconds(45),
-                GuessedWord = "Warsaw",
-                GuessingTries = 12
+                Capital = countryCityPair.Value.Trim().Replace(" ", "").ToLower(),
+                Country = countryCityPair.Key.Trim(),
+                CapitalPlaceholder = new String('_', countryCityPair.Value.Trim().Replace(" ", "").Length),
+                //TODO : make placeholder more visible
+                //CapitalPlaceholder = String.Concat(Enumerable.Repeat("_ ", countryCityPair.Value.Trim().Replace(" ", "").Length)).Trim()
             };
 
-            await FileData.WriteToFileAsync(player, FileData._scoreFile);
-            var listOfScores = await FileData.ReturnTopScoresFromFileAsync(10);
-
-            return View();
+            return View(Round);
         }
 
-        public IActionResult Privacy()
+        [HttpPost]
+        public IActionResult GameEngine(Round round)
         {
-            return View();
+            if (ModelState.IsValid == false)
+            {
+                return NotFound();
+            }
+
+            int inputLength = round.UserGuess.Length;
+
+            if (inputLength == 1)
+            {
+                if (StringManipulations.ContainsCharacter(round.Capital, round.UserGuess))
+                {
+                    round.CapitalPlaceholder = StringManipulations.ReplaceCharactersInWord(round.Capital, round.CapitalPlaceholder, round.UserGuess);
+                    if (round.CapitalPlaceholder == round.Capital)
+                    {
+                        round.RoundState = "won";                     
+                    }
+                }
+                else
+                {
+                    round.WrongGuess = round.UserGuess;
+                    round.PlayersLifes -= 1;                   
+                }
+            }
+            else
+            {
+                if (round.UserGuess == round.Capital)
+                {
+                    round.RoundState = "won";
+                }
+                else
+                {
+                    round.WrongGuess = round.UserGuess;
+                    round.PlayersLifes -= 2;
+                }
+            }
+
+            if (round.PlayersLifes <= 0)
+            {
+                round.RoundState = "lost";
+            }
+            else if (round.PlayersLifes == 1)
+            {
+                round.Hint = $"The capital of {round.Country}";
+            }
+
+            round.UserGuess = null;
+            round.NumberOfGuesses += 1;
+
+            return Json(round);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

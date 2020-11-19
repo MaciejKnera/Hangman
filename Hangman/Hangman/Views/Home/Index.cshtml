@@ -1,8 +1,379 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Round
+@{
+    ViewData["Title"] = "Hangman Game";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container col-12">
+    @* Here goes timer and players lifes *@
+    <div class="col-8 offset-4 row" style="font-size: 24px;">
+        <span class="col-1 mr-0" style="font-size:32px;"><i class="fas fa-stopwatch"></i></span>
+        <div class="col-3 stopwatch text-info d-inline-flex"></div>
+        <span class="col-4 text-center lifes"></span>
+    </div>
+    @* Here goes list of wrong letter or words *@
+    <div class="col-4">
+        <label class="d-block text-info" for="wrongGuesses" style="font-size:32px; font-weight:bold">Wrong Guesses</label>
+        <textarea id="wrongGuesses" name="wrongGuesses" class="text-danger" style="font-size: 24px;" readonly></textarea>
+    </div>
+    @* Here goes placeholder of type "___" for chosen word *@
+    <div class="col-6 offset-4">
+        <span id="capitalPlaceholder" style="font-size:48px;">@Model.CapitalPlaceholder</span>
+    </div>
+    @* Here goes two labels which infor user how many lifes he can loose *@
+    <div class="col-6 offset-4 row mt-2">
+        <label class="col-3 border rounded">WORD <img src="~/images/heart_small.png" /><img src="~/images/heart_small.png" /></label>
+        <label class="col-3 border rounded">LETTER <img src="~/images/heart_small.png" /></label>
+    </div>
+    @* Here goes additional info (hint) if user has one life left *@
+    <span class="offset-4">
+        <span id="hint" class="text-danger">@Model.Hint</span>
+    </span>
+    @* Here goes a textbox in which user can input either letter or word and a button PLAY *@
+    <div class="col-8 offset-4 row">
+        <div class="col-6">
+            <form id="userInputForm">
+                <input type="hidden" asp-for="Capital" />
+                <input type="hidden" asp-for="CapitalPlaceholder" />
+                <input type="hidden" asp-for="Country" />
+                <input type="hidden" asp-for="Hint" />
+                <input type="hidden" asp-for="NumberOfGuesses" />
+                <input type="hidden" asp-for="PlayersLifes" />
+                <input type="hidden" asp-for="WrongGuess" />
+                <input type="hidden" asp-for="RoundState" />
+                <input id="userInputBox" type ="text" class="form-control" asp-for="UserGuess" disabled placeholder="Enter a word or letter" />
+            </form>
+        </div>
+        <div class="col-2">
+            <button id="playButton" type="button" class="btn btn-success" onclick="startGame()">PLAY</button>
+        </div>
+    </div>
+    @* Here goes a button PLAY AGAIN *@
+    <div class="col-8 offset-4 row">
+        <button id="tryButton" type="button" class="btn btn-success" onclick="tryClickedLogic()" disabled>TRY</button>
+        <a id="playAgainButton" type="button" class="btn btn-success" asp-controller="Home" asp-action="Index" style="visibility:hidden;">PLAY AGAIN</a>
+    </div>
+    <div class="col-6 offset-4">
+        <span id="endgameInfo" class="font-weight-bold" style="font-size: 32px;"></span>
+        <div class="col-6 row">
+            <input id="userName" type="text" class="rounded" placeholder="Enter your name here" style="visibility:hidden;"/>
+            <button id="addToScore" type="button" class="btn btn-success" onclick="redirectToScore()" style="visibility:hidden;">SAVE YOUR SCORE</button>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.5.1.js"
+            integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
+            crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+        var jsModel = @Html.Raw(Json.Serialize(Model));
+        var firstTryClick = true;
+        var stopwatch;
+
+        $(document).ready(function () {
+            $('textarea').autoResize();
+            updateLifes();
+            updateMistakesTextArea();
+            updateCapitalPlaceholder();
+        });
+
+        //If user presses enter on inputbox, it triggers try logic (update game state)
+        $('#userInputBox').keypress(function (event) {
+            var keycode = (event.keyCode ? event.keyCode : event.which);
+            if (keycode == '13') {
+                tryClickedLogic();
+                return false;
+            }
+        });
+
+        function tryClickedLogic() {
+
+            var myData;
+
+            if (firstTryClick) {
+                myData = $('#userInputForm').serialize();
+                firstTryClick = false;
+            } else {
+                myData = jsModel;
+                myData.userGuess = $('#userInputBox').val();
+            }
+
+            $.ajax({
+                url: '@Url.Content("~/Home/GameEngine")',
+                type: "POST",
+                dataType: 'json',
+                data: myData,
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                success: function (data) {
+                    jsModel = data;
+                    updateGame();
+                },
+                error: function () {
+                    alert("Error occured!!");
+                }
+            });
+        }
+
+        function updateGame() {
+            updateLifes();
+            updateMistakesTextArea();
+            updateCapitalPlaceholder();
+
+            if (jsModel.roundState == "won") {
+                //stop stopwatch and get out value
+                stopwatch.stop();
+                jsModel.roundTime = $('#roundTime').text();
+                //disable try button
+                $('#tryButton').prop("disabled", true);
+                //Disable input box
+                $('#userInputBox').prop("disabled", true);
+                //show message "YOU WON"
+                $('#endgameInfo').addClass("alert-success").html("You Won!")
+                //enable button "PLAY AGAIN" which will redirect to Index action and automatically restart the game
+                $('#playAgainButton').css("visibility", "visible");
+                //enable button "addToScore" let user to input his name and save his game result into score table
+                $('#addToScore').css("visibility", "visible");
+                $('#userName').css("visibility", "visible");
+                jsModel.capitalPlaceholder = jsModel.capital;
+                $('#capitalPlaceholder').css("color", "green");
+                updateCapitalPlaceholder();
+
+            } else if (jsModel.roundState == "lost") {
+                //disable try button
+                $('#tryButton').prop("disabled", true);
+                //Stop timer
+                stopwatch.stop();
+                //Disable input box
+                $('#userInputBox').prop("disabled", true);
+                //show message "YOU LOST"
+                $('#endgameInfo').addClass("alert-danger").html("You Lost!")
+                //enable button "PLAY AGAIN" which will redirect to Index action and automatically restart the game
+                $('#playAgainButton').css("visibility", "visible");
+                jsModel.capitalPlaceholder = jsModel.capital;
+                $('#capitalPlaceholder').css("color", "red");
+                updateCapitalPlaceholder();
+            }
+
+            if (jsModel.playersLifes == 1) {
+                $('#hint').text(jsModel.hint);
+            }
+        }
+
+        function startGame() {
+            $('#playButton').prop("disabled", true);
+            $('#tryButton').prop("disabled", false);
+            var element = $('.stopwatch');
+            stopwatch = new StopWatch(element, { delay: 1 });
+            $('#userInputBox').prop("disabled", false);
+            stopwatch.start();
+        }
+
+        function updateLifes() {
+            $('.lifes').empty();
+            var imageUrl = '@Url.Content("~/images/heart.png")';
+            for (var i = 0; i < jsModel.playersLifes; i++) {
+                $('.lifes').append($('<img>', { src: imageUrl }));
+            }
+        }
+
+        function updateMistakesTextArea() {
+            if (jsModel.wrongGuess !== null) {
+                var textbox = $('#wrongGuesses');
+                textbox.val(textbox.val() + jsModel.wrongGuess + ', ');
+                jsModel.wrongGuess = null;
+                }
+        }
+
+        function updateCapitalPlaceholder() {
+            var text = "";
+            if (jsModel.roundState == "") {
+                for (var i = 0; i < jsModel.capitalPlaceholder.length; i++) {
+                    text += jsModel.capitalPlaceholder[i] + " ";
+                }
+                $('#capitalPlaceholder').text(text);
+            } else {
+                $('#capitalPlaceholder').text(jsModel.capitalPlaceholder);
+            }           
+        }
+
+        function redirectToScore() {
+
+            $.ajax({
+                url: '@Url.Content("~/Player/Create")',
+                type: "POST",
+                dataType: "json",
+                data: { round: jsModel, name: $('#userName').val() },
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                success: function (data) {
+                    if (data) {
+                        window.location.href = '@Url.Content("~/Player/Index")';
+                    }
+                },
+                error: function (xhr, textStatus, errorThrown) {
+                    alert(errorThrown);
+                    window.location.href = '@Url.Content("~/Home/Index")';
+                }
+            });
+
+            return false;
+        }
+
+        var StopWatch = function (element, options) {
+
+            var timer = createTimer(),
+                offset,
+                clock,
+                interval;
+
+            options = options || {};
+            options.delay = options.delay || 1;
+
+            $(element).prepend(timer);
+
+            reset();
+
+            function createTimer() {
+                var span = document.createElement("span");
+                $(span).attr('id', 'roundTime');
+                return span;
+            }
+
+            function start() {
+                if (!interval) {
+                    offset = Date.now();
+                    interval = setInterval(update, options.delay);
+                }
+            }
+
+            function stop() {
+                if (interval) {
+                    clearInterval(interval);
+                    interval = null;
+                }
+            }
+
+            function reset() {
+                clock = 0;
+                render();
+            }
+
+            function update() {
+                clock += delta();
+                render();
+            }
+
+            function render() {
+                $(timer).text(clock / 1000);
+            }
+
+            function delta() {
+                var now = Date.now(),
+                    d = now - offset;
+
+                offset = now;
+                return d;
+            }
+
+            this.start = start;
+            this.stop = stop;
+            this.reset = reset;
+        };
+
+        (function ($) {
+
+            $.fn.autoResize = function (options) {
+
+                // Just some abstracted details,
+                // to make plugin users happy:
+                var settings = $.extend({
+                    onResize: function () { },
+                    animate: true,
+                    animateDuration: 150,
+                    animateCallback: function () { },
+                    extraSpace: 20,
+                    limit: 1000
+                }, options);
+
+                // Only textarea's auto-resize:
+                this.filter('textarea').each(function () {
+
+                    // Get rid of scrollbars and disable WebKit resizing:
+                    var textarea = $(this).css({ resize: 'none', 'overflow-y': 'hidden' }),
+
+                        // Cache original height, for use later:
+                        origHeight = textarea.height(),
+
+                        // Need clone of textarea, hidden off screen:
+                        clone = (function () {
+
+                            // Properties which may effect space taken up by chracters:
+                            var props = ['height', 'width', 'lineHeight', 'textDecoration', 'letterSpacing'],
+                                propOb = {};
+
+                            // Create object of styles to apply:
+                            $.each(props, function (i, prop) {
+                                propOb[prop] = textarea.css(prop);
+                            });
+
+                            // Clone the actual textarea removing unique properties
+                            // and insert before original textarea:
+                            return textarea.clone().removeAttr('id').removeAttr('name').css({
+                                position: 'absolute',
+                                top: 0,
+                                left: -9999
+                            }).css(propOb).attr('tabIndex', '-1').insertBefore(textarea);
+
+                        })(),
+                        lastScrollTop = null,
+                        updateSize = function () {
+
+                            // Prepare the clone:
+                            clone.height(0).val($(this).val()).scrollTop(10000);
+
+                            // Find the height of text:
+                            var scrollTop = Math.max(clone.scrollTop(), origHeight) + settings.extraSpace,
+                                toChange = $(this).add(clone);
+
+                            // Don't do anything if scrollTip hasen't changed:
+                            if (lastScrollTop === scrollTop) { return; }
+                            lastScrollTop = scrollTop;
+
+                            // Check for limit:
+                            if (scrollTop >= settings.limit) {
+                                $(this).css('overflow-y', '');
+                                return;
+                            }
+                            // Fire off callback:
+                            settings.onResize.call(this);
+
+                            // Either animate or directly apply height:
+                            settings.animate && textarea.css('display') === 'block' ?
+                                toChange.stop().animate({ height: scrollTop }, settings.animateDuration, settings.animateCallback)
+                                : toChange.height(scrollTop);
+                        };
+
+                    // Bind namespaced handlers to appropriate events:
+                    textarea
+                        .unbind('.dynSiz')
+                        .bind('keyup.dynSiz', updateSize)
+                        .bind('keydown.dynSiz', updateSize)
+                        .bind('change.dynSiz', updateSize);
+
+                });
+
+                // Chain:
+                return this;
+
+            };
+
+
+
+        })(jQuery);
+
+    </script>
+
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+}

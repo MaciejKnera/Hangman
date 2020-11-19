@@ -7,12 +7,15 @@ namespace Hangman.Models
 {
     public class Round
     {
-        public string Word { get; set; }
-        public string GuessedWord { get; set; }
-        public char GuessedLetter { get; set; }
-        public string[] WrongGuesses { get; set; }
-        public int PlayersLifes { get; set; }
+        public string Capital { get; set; }
+        public string Country { get; set; }
+        public string CapitalPlaceholder { get; set; }
+        public string UserGuess { get; set; }
+        public string WrongGuess { get; set; }
+        public int PlayersLifes { get; set; } = 5;
         public int NumberOfGuesses { get; set; }
-        public TimeSpan RoundTime { get; set; }
+        public string RoundTime { get; set; }
+        public string Hint { get; set; }
+        public string RoundState { get; set; } = String.Empty;
     }
 }
