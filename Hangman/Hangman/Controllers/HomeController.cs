@@ -33,6 +33,11 @@ namespace Hangman.Controllers
             return View(Round);
         }
 
+        public IActionResult Info()
+        {
+            return View();
+        }
+
         [HttpPost]
         public IActionResult GameEngine(Round round)
         {

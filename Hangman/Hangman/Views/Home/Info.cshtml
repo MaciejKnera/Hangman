@@ -1,0 +1,26 @@
+﻿
+@{
+    ViewData["Title"] = "Info";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mt-5">
+    <div class="row">
+        <div class="col-4 m-0 mr-3">
+            <img src="~/images/hangman_big.png"/>
+        </div>
+        <div class="col-7 offset-6 m-0 float-left">
+            <h1 class="text-primary text-center">Hangman</h1>
+            <p style="background-color: white;" class="p-2">
+                Welcome in hangman! Your task is to guess a capital city of random country. Be careful, you have limited number
+                of lifes! Every wrong guessed letter makes you loose one life. If you think you know the solution, you can type in the
+                whole word but it can cost you TWO lifes if you are wrong. Even though, it may be worth trying, beacuse time is
+                ticking away! <i class="fas fa-clock"></i> The faster the better, the less tries the better. If you win, you can save your result in table of
+                best scores, try and check if you beat others. Keep trying and <b class="text-primary">HANG</b> in there!
+            </p>
+            <div style="display: flex; justify-content: center; align-content: center;">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-success btn-lg">PLAY!</a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -3,64 +3,64 @@
     ViewData["Title"] = "Hangman Game";
 }
 
-<div class="container col-12">
-    @* Here goes timer and players lifes *@
-    <div class="col-8 offset-4 row" style="font-size: 24px;">
-        <span class="col-1 mr-0" style="font-size:32px;"><i class="fas fa-stopwatch"></i></span>
-        <div class="col-3 stopwatch text-info d-inline-flex"></div>
-        <span class="col-4 text-center lifes"></span>
+@* Here goes timer and players lifes *@
+<div class="col-8 offset-4 row" style="font-size: 24px;">
+    <span class="col-1 mr-0" style="font-size:32px;"><i class="fas fa-stopwatch"></i></span>
+    <div class="col-3 stopwatch text-info d-inline-flex"></div>
+    <span class="col-4 text-center lifes"></span>
+</div>
+@* Here goes list of wrong letter or words *@
+<div class="col-4">
+    <label class="d-block text-info" for="wrongGuesses" style="font-size:32px; font-weight:bold">Wrong Guesses</label>
+    <textarea id="wrongGuesses" name="wrongGuesses" class="text-danger" style="font-size: 24px;" readonly></textarea>
+</div>
+@* Here goes placeholder of type "___" for chosen word *@
+<div class="col-6 offset-4">
+    <span id="capitalPlaceholder" style="font-size:48px;">@Model.CapitalPlaceholder</span>
+</div>
+@* Here goes two labels which infor user how many lifes he can loose *@
+<div class="col-6 offset-4 row mt-2">
+    <label class="col-3 border rounded mr-3">WORD <img src="~/images/heart_small.png" /><img src="~/images/heart_small.png" /></label>
+    <label class="col-3 border rounded">LETTER <img src="~/images/heart_small.png" /></label>
+</div>
+@* Here goes additional info (hint) if user has one life left *@
+<span class="offset-4">
+    <span id="hint" class="text-danger ml-3">@Model.Hint</span>
+</span>
+@* Here goes a textbox in which user can input either letter or word and a button PLAY *@
+<div class="col-8 offset-4 row">
+    <div class="col-6">
+        <form id="userInputForm">
+            <input type="hidden" asp-for="Capital" />
+            <input type="hidden" asp-for="CapitalPlaceholder" />
+            <input type="hidden" asp-for="Country" />
+            <input type="hidden" asp-for="Hint" />
+            <input type="hidden" asp-for="NumberOfGuesses" />
+            <input type="hidden" asp-for="PlayersLifes" />
+            <input type="hidden" asp-for="WrongGuess" />
+            <input type="hidden" asp-for="RoundState" />
+            <input id="userInputBox" type="text" class="form-control" asp-for="UserGuess" disabled autocomplete="off" placeholder="Enter a word or letter" />
+        </form>
+        <span id="inputNotValidInfo" class="text-danger"></span>
     </div>
-    @* Here goes list of wrong letter or words *@
-    <div class="col-4">
-        <label class="d-block text-info" for="wrongGuesses" style="font-size:32px; font-weight:bold">Wrong Guesses</label>
-        <textarea id="wrongGuesses" name="wrongGuesses" class="text-danger" style="font-size: 24px;" readonly></textarea>
-    </div>
-    @* Here goes placeholder of type "___" for chosen word *@
-    <div class="col-6 offset-4">
-        <span id="capitalPlaceholder" style="font-size:48px;">@Model.CapitalPlaceholder</span>
-    </div>
-    @* Here goes two labels which infor user how many lifes he can loose *@
-    <div class="col-6 offset-4 row mt-2">
-        <label class="col-3 border rounded">WORD <img src="~/images/heart_small.png" /><img src="~/images/heart_small.png" /></label>
-        <label class="col-3 border rounded">LETTER <img src="~/images/heart_small.png" /></label>
-    </div>
-    @* Here goes additional info (hint) if user has one life left *@
-    <span class="offset-4">
-        <span id="hint" class="text-danger">@Model.Hint</span>
-    </span>
-    @* Here goes a textbox in which user can input either letter or word and a button PLAY *@
-    <div class="col-8 offset-4 row">
-        <div class="col-6">
-            <form id="userInputForm">
-                <input type="hidden" asp-for="Capital" />
-                <input type="hidden" asp-for="CapitalPlaceholder" />
-                <input type="hidden" asp-for="Country" />
-                <input type="hidden" asp-for="Hint" />
-                <input type="hidden" asp-for="NumberOfGuesses" />
-                <input type="hidden" asp-for="PlayersLifes" />
-                <input type="hidden" asp-for="WrongGuess" />
-                <input type="hidden" asp-for="RoundState" />
-                <input id="userInputBox" type="text" class="form-control" asp-for="UserGuess" disabled autocomplete="off" placeholder="Enter a word or letter" />
-            </form>
-            <span id="inputNotValidInfo" class="text-danger"></span>
-        </div>
-        <div class="col-2">
-            <button id="playButton" type="button" class="btn btn-success" onclick="startGame()">PLAY</button>
-        </div>
-    </div>
-    @* Here goes a button PLAY AGAIN *@
-    <div class="col-8 offset-4 row">
-        <button id="tryButton" type="button" class="btn btn-success" onclick="tryClickedLogic()" disabled>TRY</button>
-        <a id="playAgainButton" type="button" class="btn btn-success" asp-controller="Home" asp-action="Index" style="visibility:hidden;">PLAY AGAIN</a>
-    </div>
-    <div class="col-6 offset-4">
-        <span id="endgameInfo" class="font-weight-bold" style="font-size: 32px;"></span>
-        <div class="col-6 row">
-            <input id="userName" type="text" class="rounded" placeholder="Enter your name here" style="visibility:hidden;" />
-            <button id="addToScore" type="button" class="btn btn-success" onclick="redirectToScore()" style="visibility:hidden;">SAVE YOUR SCORE</button>
-        </div>
+    <div class="col-2">
+        <button id="playButton" type="button" class="btn btn-success" onclick="startGame()">PLAY</button>
     </div>
 </div>
+@* Here goes a button PLAY AGAIN *@
+<div class="col-8 offset-4 row mt-2">
+    <button id="tryButton" type="button" class="btn btn-success mr-3" onclick="tryClickedLogic()" disabled>TRY</button>
+    <a id="playAgainButton" type="button" class="btn btn-success" asp-controller="Home" asp-action="Index" style="visibility:hidden;">PLAY AGAIN</a>
+</div>
+<div class="col-6 offset-4">
+    <span id="endgameInfo" class="font-weight-bold" style="font-size: 32px;"></span>
+    <div class="col-6">
+        <input id="userName" type="text" class="rounded my-2" placeholder="Enter your name here" style="visibility:hidden;"/>
+        <span id="inputNameNotValid" class="text-danger"></span>
+        <button id="addToScore" type="button" class="btn btn-success" onclick="redirectToScore()" style="visibility:hidden;">SAVE YOUR SCORE</button>
+    </div>
+</div>
+
 
 @section Scripts {
 
@@ -104,17 +104,11 @@
 
         function tryClickedLogic() {
 
-            $('#inputNotValidInfo').html('');
-
-            $('#userInputBox').val($('#userInputBox').val().toLowerCase());
-            if ($('#wrongGuesses').val().includes($('#userInputBox').val()) || jsModel.capitalPlaceholder.includes($('#userInputBox').val())) {
-
-                $('#userInputBox').val('');
-                $('#inputNotValidInfo').html('You have already put that value.');
+            if (checkIfInputFirstTime() == false) {
                 return;
             }
 
-            var valid = validateUserInput();
+            var valid = validateUserGuess();
 
             if (valid) {
                 var myData;
@@ -149,7 +143,30 @@
 
         }
 
-        function validateUserInput() {
+        function checkIfInputFirstTime() {
+
+            $('#inputNotValidInfo').html('');
+            $('#userInputBox').val($('#userInputBox').val().toLowerCase());
+
+            if (jsModel.capitalPlaceholder.includes($('#userInputBox').val())) {
+                $('#userInputBox').val('');
+                $('#inputNotValidInfo').html('You have already put that value.');
+                return false;
+            }
+
+            var wrongGuessesArray = ($('#wrongGuesses').val().split(','));
+            for (var i = 0; i < wrongGuessesArray.length; i++) {
+                if (wrongGuessesArray[i] == $('#userInputBox').val()) {
+                    $('#userInputBox').val('');
+                    $('#inputNotValidInfo').html('You have already put that value.');
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function validateUserGuess() {
             var input = $('#userInputBox').val();
             var pattern = /^[a-zA-Z]+$/;
 
@@ -175,7 +192,7 @@
                 //Disable input box
                 $('#userInputBox').prop("disabled", true);
                 //show message "YOU WON"
-                $('#endgameInfo').addClass("alert-success").html("You Won!")
+                $('#endgameInfo').addClass("alert-success").html("You Won! It took you " + jsModel.roundTime + " seconds and " + jsModel.numberOfGuesses + " tries!");
                 //enable button "PLAY AGAIN" which will redirect to Index action and automatically restart the game
                 $('#playAgainButton').css("visibility", "visible");
                 //enable button "addToScore" let user to input his name and save his game result into score table
@@ -245,7 +262,10 @@
 
         function redirectToScore() {
 
-            $.ajax({
+            $('#inputNameNotValid').html('');
+            var valid = validateUserName();
+            if (valid) {
+                $.ajax({
                 url: '@Url.Content("~/Player/Create")',
                 type: "POST",
                 dataType: "json",
@@ -261,6 +281,22 @@
                     window.location.href = '@Url.Content("~/Home/Index")';
                 }
             });
+
+            return false;
+            } else {
+                $('#userName').val('');
+                $('#inputNameNotValid').html('Input cannot be empty. It can only contain letters and words. No numbers are allowed.');
+            }
+
+        }
+
+        function validateUserName() {
+            var input = $('#userName').val();
+            var pattern = /^(?! )[A-Za-z\s]+$/;
+
+            if (input.match(pattern)) {
+                return true;
+            }
 
             return false;
         }
@@ -282,6 +318,7 @@
             function createTimer() {
                 var span = document.createElement("span");
                 $(span).attr('id', 'roundTime');
+                $(span).css('font-size', '32px');
                 return span;
             }
 

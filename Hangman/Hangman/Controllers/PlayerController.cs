@@ -27,7 +27,6 @@ namespace Hangman.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Round round, string name)
         {
             Player Player = new Player()
