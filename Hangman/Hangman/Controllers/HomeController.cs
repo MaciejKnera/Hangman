@@ -28,8 +28,6 @@ namespace Hangman.Controllers
                 Capital = countryCityPair.Value.Trim().Replace(" ", "").ToLower(),
                 Country = countryCityPair.Key.Trim(),
                 CapitalPlaceholder = new String('_', countryCityPair.Value.Trim().Replace(" ", "").Length),
-                //TODO : make placeholder more visible
-                //CapitalPlaceholder = String.Concat(Enumerable.Repeat("_ ", countryCityPair.Value.Trim().Replace(" ", "").Length)).Trim()
             };
 
             return View(Round);

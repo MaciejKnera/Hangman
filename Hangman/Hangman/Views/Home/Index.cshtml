@@ -40,8 +40,9 @@
                 <input type="hidden" asp-for="PlayersLifes" />
                 <input type="hidden" asp-for="WrongGuess" />
                 <input type="hidden" asp-for="RoundState" />
-                <input id="userInputBox" type ="text" class="form-control" asp-for="UserGuess" disabled placeholder="Enter a word or letter" />
+                <input id="userInputBox" type="text" class="form-control" asp-for="UserGuess" disabled autocomplete="off" placeholder="Enter a word or letter" />
             </form>
+            <span id="inputNotValidInfo" class="text-danger"></span>
         </div>
         <div class="col-2">
             <button id="playButton" type="button" class="btn btn-success" onclick="startGame()">PLAY</button>
@@ -55,13 +56,16 @@
     <div class="col-6 offset-4">
         <span id="endgameInfo" class="font-weight-bold" style="font-size: 32px;"></span>
         <div class="col-6 row">
-            <input id="userName" type="text" class="rounded" placeholder="Enter your name here" style="visibility:hidden;"/>
+            <input id="userName" type="text" class="rounded" placeholder="Enter your name here" style="visibility:hidden;" />
             <button id="addToScore" type="button" class="btn btn-success" onclick="redirectToScore()" style="visibility:hidden;">SAVE YOUR SCORE</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
+
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
     <script src="https://code.jquery.com/jquery-3.5.1.js"
             integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
             crossorigin="anonymous"></script>
@@ -87,10 +91,33 @@
                 return false;
             }
         });
+        //Auto focus on input fields after try or play button are clicked
+        $('#playButton, #tryButton').on("click", function (e) {
+            e.preventDefault();
+            $('#userInputBox').focus();
+            return false;
+        });
+
+        $('input[type=text]').val(function () {
+            return this.value.toLowerCase();
+        });
 
         function tryClickedLogic() {
 
-            var myData;
+            $('#inputNotValidInfo').html('');
+
+            $('#userInputBox').val($('#userInputBox').val().toLowerCase());
+            if ($('#wrongGuesses').val().includes($('#userInputBox').val()) || jsModel.capitalPlaceholder.includes($('#userInputBox').val())) {
+
+                $('#userInputBox').val('');
+                $('#inputNotValidInfo').html('You have already put that value.');
+                return;
+            }
+
+            var valid = validateUserInput();
+
+            if (valid) {
+                var myData;
 
             if (firstTryClick) {
                 myData = $('#userInputForm').serialize();
@@ -98,7 +125,7 @@
             } else {
                 myData = jsModel;
                 myData.userGuess = $('#userInputBox').val();
-            }
+                }
 
             $.ajax({
                 url: '@Url.Content("~/Home/GameEngine")',
@@ -114,12 +141,30 @@
                     alert("Error occured!!");
                 }
             });
+            } else {
+                $('#userInputBox').val('');
+                $('#inputNotValidInfo').html('Input cannot be empty. It can only contain letters and words.');
+            }
+
+
+        }
+
+        function validateUserInput() {
+            var input = $('#userInputBox').val();
+            var pattern = /^[a-zA-Z]+$/;
+
+            if (input.match(pattern)) {
+                return true;
+            }
+
+            return false;
         }
 
         function updateGame() {
             updateLifes();
             updateMistakesTextArea();
             updateCapitalPlaceholder();
+            $('#userInputBox').val('');
 
             if (jsModel.roundState == "won") {
                 //stop stopwatch and get out value
@@ -188,14 +233,14 @@
 
         function updateCapitalPlaceholder() {
             var text = "";
-            if (jsModel.roundState == "") {
+            if (jsModel.roundState != "lost" && jsModel.roundState != "won") {
                 for (var i = 0; i < jsModel.capitalPlaceholder.length; i++) {
                     text += jsModel.capitalPlaceholder[i] + " ";
                 }
                 $('#capitalPlaceholder').text(text);
             } else {
                 $('#capitalPlaceholder').text(jsModel.capitalPlaceholder);
-            }           
+            }
         }
 
         function redirectToScore() {
@@ -373,7 +418,5 @@
         })(jQuery);
 
     </script>
-
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 
 }
