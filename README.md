@@ -1,4 +1,2 @@
 # Hangman
 Hangman game
-# My programming story
-To be honest, I didn't start programming out of passion. It was because I needed to choose another path of my career than I previously wanted. IT was completely new for me at univeristy and I had to put a lot of hard work to keep up with my more experienced friends. With time passing by, I realised that programming can be really rewarding and one can do great stuff with sufficient amount of knowledge. Some time ago I finally found what truly interests me and it's of course .NET platform. I believe it's so well developed and huge that I will fulfill the upcoming years with learning and use that knowledge in practice. There are plenty of technologies which I want to get along with and know well, programming is so absorbing because it gives endless possibilities to self-development. You can't be bored so easily and I think it's enormously important in your job.
